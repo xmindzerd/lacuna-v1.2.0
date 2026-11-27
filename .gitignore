@@ -1,0 +1,12 @@
+/build/
+/bin/
+/obj/
+/ocr-engine/bin/
+/ocr-engine/obj/
+/third-party/PDF/*.dll
+/third-party/RapidOCR/*.dll
+/third-party/RapidOCR/*.exe
+/third-party/RapidOCR/*.onnx
+*.zip
+.env
+.env.*

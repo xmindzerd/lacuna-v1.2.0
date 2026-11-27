@@ -1,0 +1,4 @@
+interface:
+  display_name: "资产出图与参考规范（融合版）"
+  short_description: "从 1B 视觉设定整理横屏 4:3 资产提示词与逐张附图约束"
+  default_prompt: "用 $lacuna-asset-image-rules 将当前视觉设定整理为保留连戏锁和字迹策略的资产参考图提示词。"

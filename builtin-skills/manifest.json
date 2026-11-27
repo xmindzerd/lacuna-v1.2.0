@@ -1,0 +1,145 @@
+{
+    "version":  "V0.2.3",
+    "skills":  [
+                   {
+                       "id":  "xiaoyu-director-script-analysis",
+                       "title":  "导演剧本分析",
+                       "stage":  "director-analysis",
+                       "files":  [
+                                     {
+                                         "path":  "agents/openai.yaml",
+                                         "bytes":  304,
+                                         "sha256":  "E4928C60703DDB4E7E54AFBE5276E2AB88DD7D229F46A1B0ABBD676756F0D9D4"
+                                     },
+                                     {
+                                         "path":  "references/directing.md",
+                                         "bytes":  5409,
+                                         "sha256":  "78169A0D0CCE01BC32A2BE1A1AA85D79E563117135DE0B6859B9160A47184645"
+                                     },
+                                     {
+                                         "path":  "references/required-shots.md",
+                                         "bytes":  4110,
+                                         "sha256":  "1E22C45C61C12C86B6BAB1D1E859525C2707E09A5CCE9B2B3418C9A8761F3E34"
+                                     },
+                                     {
+                                         "path":  "SKILL.md",
+                                         "bytes":  5932,
+                                         "sha256":  "70B238E61380D5C119D7930CC036B1FF9B6D47FB3F4797553DC508B29A04DC90"
+                                     }
+                                 ]
+                   },
+                   {
+                       "id":  "short-drama-assets-zenstory",
+                       "title":  "短剧视觉设定拆解（Zenstory）",
+                       "stage":  "visual-assets",
+                       "files":  [
+                                     {
+                                         "path":  "agents/openai.yaml",
+                                         "bytes":  397,
+                                         "sha256":  "137F60D8A32D3E4B6A8F0CAA359396F140862F886FE562D80F7030138565C61C"
+                                     },
+                                     {
+                                         "path":  "references/asset-design-guide.md",
+                                         "bytes":  11628,
+                                         "sha256":  "51D6146ADB805B7C8B008A3458875A67DD57DCE78B3BFCAA97F5A3EA07AB9477"
+                                     },
+                                     {
+                                         "path":  "references/continuity-and-locks.md",
+                                         "bytes":  5467,
+                                         "sha256":  "16A01E544E9DF9E2A843AF130DD337362308B569A89839439B6D44D38BD308B8"
+                                     },
+                                     {
+                                         "path":  "references/stage-contract.md",
+                                         "bytes":  4505,
+                                         "sha256":  "7DAE4B1D3C71FFF7B2CA664CAED2EEE2F0757390AF060DF0078527174507E84C"
+                                     },
+                                     {
+                                         "path":  "references/voice-direction.md",
+                                         "bytes":  5622,
+                                         "sha256":  "FA8DA5A9191524617CFE2685E3C401E4A99B640181D7407E70960A600A233C3C"
+                                     },
+                                     {
+                                         "path":  "SKILL.md",
+                                         "bytes":  4395,
+                                         "sha256":  "40914E5CF12E7A110C3780D2D0E394EB862E24A612EE9B8C5818C35CA208C62D"
+                                     }
+                                 ]
+                   },
+                   {
+                       "id": "lacuna-asset-image-rules",
+                       "title": "资产出图与参考规范（融合版）",
+                       "stage": "2A 资产出图与参考规范",
+                       "files": [
+                           {
+                               "path": "agents/openai.yaml",
+                               "bytes": 309,
+                               "sha256": "03B1C39E147EC37E9AAB87156CEC210D6DFD27D09BD9C1F5BDF731C2419A0CD4"
+                           },
+                           {
+                               "path": "SKILL.md",
+                               "bytes": 3709,
+                               "sha256": "7B370835CF5BF0F784A06FE2C3EE72E5DC8FCAFA7C082715A133A4416F4F7C21"
+                           }
+                       ]
+                   },
+                   {
+                       "id":  "xiaoyu-vertical-shotlist",
+                       "title":  "晓羽 竖屏导演分镜",
+                       "stage":  "vertical-shotlist",
+                       "files":  [
+                                     {
+                                         "path":  "agents/openai.yaml",
+                                         "bytes":  491,
+                                         "sha256":  "CD259D3927C8C132FD640C1D28FF01A3E36502036327F102D1EF4CF1488A6BEE"
+                                     },
+                                     {
+                                         "path":  "references/director-calibration.md",
+                                         "bytes":  21730,
+                                         "sha256":  "E79280DBCB7FC26E3F6B2953DFF1BE2BC3F56FAC42709C1C390D27FBB3C64C2E"
+                                     },
+                                     {
+                                         "path":  "references/north-america-vertical-short-drama.md",
+                                         "bytes":  5408,
+                                         "sha256":  "2B0F0595929EF933665A59138302A767ED706B2B7C7AF8736E81289AB6FFFD93"
+                                     },
+                                     {
+                                         "path":  "SKILL.md",
+                                         "bytes":  25201,
+                                         "sha256":  "96A4D9B9DCA8938BA7152FB22DF2DEDCFDEBC9E7F80B2188816C237DD5CC0C9A"
+                                     }
+                                 ]
+                   },
+                   {
+                       "id":  "xiaoyu-seedance-one-click-prompts",
+                       "title":  "晓羽 Seedance 一键成片提示词",
+                       "stage":  "final-prompt",
+                       "files":  [
+                                     {
+                                         "path":  "agents/openai.yaml",
+                                         "bytes":  347,
+                                         "sha256":  "FC8AFB4F31BB731069B96B7B740FD9788EB912B99CB8C6756BCF5F833F0106E5"
+                                     },
+                                     {
+                                         "path":  "references/canvas-example.md",
+                                         "bytes":  3116,
+                                         "sha256":  "674764B5210B3144534B4A1CB43ABD126412E78EBC16B2687817F9880834A5D8"
+                                     },
+                                     {
+                                         "path":  "references/scene-canvas.md",
+                                         "bytes":  8129,
+                                         "sha256":  "B7F1A35B921ED56DC3C863F50D697A21DD544C85D56CCF3A1DA3E39DF940F36B"
+                                     },
+                                     {
+                                         "path":  "references/stable-conditions.md",
+                                         "bytes":  3661,
+                                         "sha256":  "EF66CCD259E14572DB3D39BF8E8FA9C0FE05739218D93C5A370021F72643301D"
+                                     },
+                                     {
+                                         "path":  "SKILL.md",
+                                         "bytes":  5898,
+                                         "sha256":  "664976E09FF856CF90948966D6EBB513A2DBCE0E07DB79BC8E72FB670D9A679F"
+                                     }
+                                 ]
+                   }
+               ]
+}

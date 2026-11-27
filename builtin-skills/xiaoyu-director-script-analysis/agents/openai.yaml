@@ -1,0 +1,4 @@
+interface:
+  display_name: "xiaoyu-director-script-analysis"
+  short_description: "按场分析 AI 短剧的分集钩子、视觉重点与必需镜头，导出逐场 Excel"
+  default_prompt: "用 $xiaoyu-director-script-analysis 分析这份剧本，按原场次导出 AI 短剧 Scene by Scene Excel。"

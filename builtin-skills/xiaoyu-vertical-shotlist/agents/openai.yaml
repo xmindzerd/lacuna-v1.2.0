@@ -1,0 +1,7 @@
+interface:
+  display_name: "晓羽 竖屏导演分镜"
+  short_description: "将国内外竖屏短剧单集或多场片段拆成三列中文导演分镜表，台词采用剧本选定语言"
+  default_prompt: "使用 $xiaoyu-vertical-shotlist，把提供的竖屏短剧单集或多场片段拆成中文 Excel 导演分镜表，包含镜号、摄影机、分镜内容三列，台词逐字采用剧本选定语言，严格执行短镜时长规则。"
+
+policy:
+  allow_implicit_invocation: true
