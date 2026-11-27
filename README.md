@@ -22,3 +22,10 @@ Lacuna 是面向 AI 短剧制作的 Windows 桌面工具，支持从剧本分析
 恢复脚本先校验正式 ZIP 的 SHA‑256，再读取其中 `Lacuna.exe` 的 PDF 和 OCR 依赖资源。`build.ps1` 使用 Windows .NET Framework 4.x 编译器，输出 `build/Lacuna.exe`。
 
 如需使用随包运行时，可把编译后的 `Lacuna.exe` 放进一份独立解压的 V1.2.0 团队包。要重新生成带双基线原地升级功能的正式发行包，`package-team.ps1` 还需要随包运行时以及原版 V1.1.55 和 V1.1.6 的完整解包目录。
+
+## 自定义图片 API
+
+在「设置 → 自定义图片 API」保存渠道名称、Base URL、API Key 和图片模型 ID，然后在项目的「资产出图渠道」或资产页选择该渠道。它不更改 Codex 登录、剧本分析或分镜设置，Key 在本机按 Windows 用户加密保存。
+
+- **OpenAI 兼容 Images API**：无参考图用 `/images/generations`；有参考图用 `/images/edits`。地址填供应商的 API 基础路径（通常以 `/v1` 结尾），不要加具体接口路径。供应商必须支持所选模型和对应接口。
+- **Responses API 生图**：另填支持 `image_generation` 的主模型；思考强度默认不传。旧项目和原来的 Codex 内置生图无需重新配置。

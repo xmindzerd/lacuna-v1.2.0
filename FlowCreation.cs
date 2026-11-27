@@ -133,6 +133,7 @@ namespace OneClickFilm
                 channel = FlowChannels.ResponsesApiChannel();
             }
             if (draft.Channel != (channel == null ? "builtin" : channel.Id)) throw new InvalidOperationException("该出图渠道没有通过本机检测，请重新选择。");
+            if (ImageApiProfiles.IsProfile(draft.Channel)) ImageApiProfiles.Key(channel);
             VideoPlatform.For(draft.Video,draft.Ratio,token);
             progress("正在读取所选 Skill 及参考文件");
             token.ThrowIfCancellationRequested();

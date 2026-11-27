@@ -1036,14 +1036,14 @@ namespace OneClickFilm
             if (angle != "主图" && main == null)
                 throw new InvalidOperationException("请先制作地点主图。");
             var opts = AgentData.Options();
-            if (channel != null)
+            if (channel != null && !ImageApiProfiles.IsProfile(channel.Id))
             {
                 if (main != null && channel.Driver != FlowChannels.Dreamina && !(channel.Arguments ?? "").Contains("{reference}"))
                     throw new InvalidOperationException("该渠道未设置参考图参数。");
                 opts = channel.Options(opts);
             }
 
-            string route = channel == null ? "builtin" : "cli";
+            string route = channel == null ? "builtin" : ImageApiProfiles.IsProfile(channel.Id) ? channel.Id : "cli";
             string agreed;
             if (!Prompt("确认制作参考图", asset.Name + " · " + angle + " · " + (channel == null ? "Codex 内置图片生成" : channel.Name) + "\n本次提交一张图片。", "开始制作", "取消", false, out agreed))
                 return;

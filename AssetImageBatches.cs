@@ -456,6 +456,8 @@ namespace OneClickFilm
 
         internal static string ChannelProfile(AssetChannel channel)
         {
+            if (channel != null && ImageApiProfiles.IsProfile(channel.Id))
+                return "responses-" + AgentData.Hash(String.Join("\n", channel.Id, channel.Driver, channel.BaseUrl, channel.ImageModel, channel.MainModel, channel.ImageEffort));
             if (FlowChannels.IsResponsesApi(channel) || channel == null && CodexAuthMode.IsApi)
                 return "responses-" + AgentData.Hash(CodexAuthMode.BaseUrl + "\n" + CodexAuthMode.Model);
             if (channel == null) return "builtin";
@@ -731,7 +733,7 @@ namespace OneClickFilm
         internal static bool EmptyBuiltinSession(string project, AssetAttempt attempt)
         {
             var folder = AgentMedia.JobFolder(project, new AgentJob { Id = attempt.Id });
-            if (FlowChannels.IsResponsesApi(attempt.PlatformId) || CodexAuthMode.IsApi) return UnsentApiImage(folder);
+            if (ImageApiProfiles.IsProfile(attempt.PlatformId) || FlowChannels.IsResponsesApi(attempt.PlatformId) || CodexAuthMode.IsApi) return UnsentApiImage(folder);
             string session = Path.Combine(folder, AgentMedia.BuiltinSessionFile);
             if (!File.Exists(session) || File.Exists(Path.Combine(folder, AgentMedia.ReceiptFile))) return false;
             string id = File.ReadAllText(session).Trim();

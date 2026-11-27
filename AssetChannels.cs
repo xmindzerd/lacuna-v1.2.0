@@ -13,6 +13,10 @@ namespace OneClickFilm
         public string Name { get; set; }
         public string Executable { get; set; }
         public string Driver { get; set; }
+        public string BaseUrl { get; set; }
+        public string ImageModel { get; set; }
+        public string MainModel { get; set; }
+        public string ImageEffort { get; set; }
         public string Arguments { get; set; }
         public string OutputSizes { get; set; }
         public string CheckArguments { get; set; }
@@ -63,6 +67,7 @@ namespace OneClickFilm
                 foreach (AssetChannel channel in channels)
                 {
                     cancel.ThrowIfCancellationRequested();
+                    if (ImageApiProfiles.IsProfile(channel.Id)) continue;
                     try
                     {
                         CheckCli(channel.Options(options), Path.GetDirectoryName(channel.Executable), cancel);

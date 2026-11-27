@@ -214,7 +214,7 @@ namespace OneClickFilm
             return ImageOutputSettings.Ratio(target) == "4:3" ? "1536x1024" : "auto";
         }
 
-        private static void RecordFailure(string work, string responseId)
+        internal static void RecordFailure(string work, string responseId)
         {
             string path = Path.Combine(work, AgentMedia.ReceiptFile);
             var current = AgentData.Read<MediaReceipt>(path);
@@ -265,6 +265,11 @@ namespace OneClickFilm
             byte[] bytes;
             try { bytes = Convert.FromBase64String(data); }
             catch (FormatException) { throw new InvalidDataException("图片 Base64 数据格式无效。"); }
+            return SaveImageBytes(work, bytes, responseId);
+        }
+
+        internal static string SaveImageBytes(string work, byte[] bytes, string responseId)
+        {
             string ext = bytes.Take(8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}) ? ".png" :
                 bytes.Take(3).SequenceEqual(new byte[]{255,216,255}) ? ".jpg" :
                 bytes.Length >= 12 && Encoding.ASCII.GetString(bytes,0,4) == "RIFF" &&
@@ -286,19 +291,19 @@ namespace OneClickFilm
         }
 
         internal static string GenerateImage(string work, string prompt, AgentOptions options, IList<string> images,
-            string size, SelectedSkill skill, int timeout, CancellationToken cancel, string codexExe = null)
+            string size, SelectedSkill skill, int timeout, CancellationToken cancel, string codexExe = null, AssetChannel apiChannel = null)
         {
             SkillCompatibility.Ensure(codexExe, options.Model, skill, cancel);
-            return Run(work, prompt, CodexAuthMode.Model, null, null, null, images, null,
-                skill, false, true, size, "low", timeout, null, cancel).Answer;
+            return Run(work, prompt, apiChannel == null ? CodexAuthMode.Model : apiChannel.MainModel, null, null, null, images, null,
+                skill, false, true, size, apiChannel == null ? "low" : apiChannel.ImageEffort, timeout, null, cancel, apiChannel).Answer;
         }
 
         internal static AgentResult Run(string work, string prompt, string model, string session,
             string schema, string output, IList<string> images, string project, SelectedSkill skill, bool skillAudit,
-            bool image, string size, string effort, int timeout, Action<AgentEvent> notify, CancellationToken cancel)
+            bool image, string size, string effort, int timeout, Action<AgentEvent> notify, CancellationToken cancel, AssetChannel apiChannel = null)
         {
-            string url = CodexAuthMode.Preflight(CodexAuthMode.BaseUrl, model);
-            string key = CodexAuthMode.ResolveApiKey();
+            string url = CodexAuthMode.Preflight(apiChannel == null ? CodexAuthMode.BaseUrl : apiChannel.BaseUrl, model);
+            string key = apiChannel == null ? CodexAuthMode.ResolveApiKey() : ImageApiProfiles.Key(apiChannel);
             Directory.CreateDirectory(work);
             string historyFile = null;
             if (schema == null && !String.IsNullOrEmpty(session))
@@ -329,7 +334,7 @@ namespace OneClickFilm
                         body["text"] = new { format = new { type = "json_schema", name = "lacuna_output", strict = true,
                             schema = AgentData.Json().DeserializeObject(File.ReadAllText(schema)) } };
                     bool reasoning = ReasoningModel(model);
-                    if (reasoning && AgentRunner.ValidEffort(effort) && effort != "none") body["reasoning"] = new { effort };
+                    if ((reasoning || apiChannel != null) && !String.IsNullOrEmpty(effort) && AgentRunner.ValidEffort(effort) && effort != "none") body["reasoning"] = new { effort };
                     var tools = new List<object>();
                     var allowed = new HashSet<string>(StringComparer.Ordinal);
                     foreach (object spec in AgentMcp.Tools(null, work, skill == null || (skill.PreloadedReferences && !skillAudit) ? null : skill.Directory))
@@ -340,7 +345,12 @@ namespace OneClickFilm
                         allowed.Add(name);
                         tools.Add(new { type = "function", name, description = tool["description"], parameters = tool["inputSchema"], strict = false });
                     }
-                    if (image) tools.Add(new { type = "image_generation", size = Size(size) });
+                    if (image)
+                    {
+                        var imageTool = CodexAppServer.Obj("type", "image_generation", "size", Size(size));
+                        if (apiChannel != null) imageTool["model"] = apiChannel.ImageModel;
+                        tools.Add(imageTool);
+                    }
                     if (tools.Count != 0) body["tools"] = tools;
                     if (image && allowed.Count == 0) body["tool_choice"] = new { type = "image_generation" };
                     if (reasoning && allowed.Count != 0) body["include"] = new[] { "reasoning.encrypted_content" };

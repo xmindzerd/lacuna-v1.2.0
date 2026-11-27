@@ -588,7 +588,7 @@ namespace OneClickFilm
             production.Children.Add(batch);
             setup.Children.Add(ProjectAnalysisParagraph(
                 "内置渠道按目标规格构图，实际像素以回图为准。外部 CLI 只显示已配置的规格。", 12));
-            AddAssetSettings(production, root, version, analysis, work, platforms.Count, chosen, setup);
+            AddAssetSettings(production, root, version, analysis, work, platforms.Count(p => !ImageApiProfiles.IsProfile(p.Id)), chosen, setup);
             operations.Children.Add(Panel(production));
             operations.Children.Add(new Expander { Header = "批量审核与阶段交接", Content = bulk, Foreground = Window.Foreground,
                 Margin = new Thickness(0, 8, 0, 0) });
@@ -734,13 +734,14 @@ namespace OneClickFilm
             tools.Children.Add(ActionButton("检测外部 CLI", () => RunAsset(root, version, analysis, async (current, cancel) =>
             {
                 var detected = await Task.Run(() => AssetChannels.Detect(null, AgentData.Options(), cancel));
-                return detected.Count == 0 ? "外部平台 CLI · 无" : "外部平台 CLI · 已检测 " + detected.Count + " 家";
+                int count = detected.Count(c => !ImageApiProfiles.IsProfile(c.Id));
+                return count == 0 ? "外部平台 CLI · 无" : "外部平台 CLI · 已检测 " + count + " 家";
             }, false, true, name: "外部渠道检测"), false));
             tools.Children.Add(ActionButton("添加外部 CLI", () => EditAssetChannel(root, null), false));
             tools.Children.Add(ActionButton("编辑所选 CLI", delegate
             {
                 var channel = chosen();
-                if (channel == null || FlowChannels.IsResponsesApi(channel)) { SetStatus("请先选择一个外部 CLI。"); return; }
+                if (channel == null || FlowChannels.IsNative(channel.Id)) { SetStatus("请先选择一个外部 CLI。"); return; }
                 EditAssetChannel(root, channel);
             }, false));
             var references = new WrapPanel();
