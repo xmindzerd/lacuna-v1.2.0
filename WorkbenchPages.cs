@@ -126,6 +126,7 @@ namespace OneClickFilm
             AddSystemSettings();
             AddCodexSettings();
             AddCodexConnectionSettings();
+            AddImageApiSettings();
         }
 
         private void AddCodexConnectionSettings()

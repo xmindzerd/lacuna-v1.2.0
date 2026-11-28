@@ -17,7 +17,7 @@ namespace OneClickFilm
 
         internal static bool IsResponsesApi(string id) { return id == ResponsesApi; }
         internal static bool IsResponsesApi(AssetChannel channel) { return channel != null && IsResponsesApi(channel.Id); }
-        internal static bool IsNative(string id) { return id == "builtin" || IsResponsesApi(id); }
+        internal static bool IsNative(string id) { return id == "builtin" || IsResponsesApi(id) || ImageApiProfiles.IsProfile(id); }
         internal static AssetChannel ResponsesApiChannel()
         {
             return new AssetChannel { Id = ResponsesApi, Name = ResponsesApiName, Driver = ResponsesApi };
@@ -46,6 +46,7 @@ namespace OneClickFilm
             foreach (var c in all)
             {
                 token.ThrowIfCancellationRequested();
+                if (ImageApiProfiles.IsProfile(c.Id)) { result.Add(c); continue; }
                 try { AssetChannels.CheckCli(c.Options(options), Path.GetDirectoryName(c.Executable), token); result.Add(c); }
                 catch (OperationCanceledException) { throw; }
                 catch (Exception e)
@@ -61,6 +62,7 @@ namespace OneClickFilm
         {
             if (id == "builtin") return null;
             if (IsResponsesApi(id)) return ResponsesApiChannel();
+            if (ImageApiProfiles.IsProfile(id)) return ImageApiProfiles.Get(id);
             var channel = id == Dreamina ? InstalledDreamina() : AssetChannels.Load().FirstOrDefault(c => c.Id == id);
             if (channel == null) throw new InvalidOperationException("项目选择的图片 CLI 在本机不可用。请恢复渠道配置后继续。");
             return channel;

@@ -13,6 +13,11 @@ namespace OneClickFilm
         public string Name { get; set; }
         public string Executable { get; set; }
         public string Driver { get; set; }
+        public string BaseUrl { get; set; }
+        public string ImageModel { get; set; }
+        public string ImageKeyRevision { get; set; }
+        public string MainModel { get; set; }
+        public string ImageEffort { get; set; }
         public string Arguments { get; set; }
         public string OutputSizes { get; set; }
         public string CheckArguments { get; set; }
@@ -54,15 +59,22 @@ namespace OneClickFilm
             AgentData.Save(FilePath, channels);
         }
 
-        internal static List<AssetChannel> Detect(string codex, AgentOptions options, CancellationToken cancel)
+        internal static FileStream LockForWrite()
         {
             Directory.CreateDirectory(AgentData.Local);
-            using (new FileStream(Path.Combine(AgentData.Local, "图片平台.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose))
+            return new FileStream(Path.Combine(AgentData.Local, "图片平台.lock"), FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
+        }
+
+        internal static List<AssetChannel> Detect(string codex, AgentOptions options, CancellationToken cancel)
+        {
+            using (LockForWrite())
             {
                 var channels = Load();
                 foreach (AssetChannel channel in channels)
                 {
                     cancel.ThrowIfCancellationRequested();
+                    if (ImageApiProfiles.IsProfile(channel.Id)) continue;
                     try
                     {
                         CheckCli(channel.Options(options), Path.GetDirectoryName(channel.Executable), cancel);
@@ -79,8 +91,7 @@ namespace OneClickFilm
 
         internal static void Store(AssetChannel channel)
         {
-            Directory.CreateDirectory(AgentData.Local);
-            using (new FileStream(Path.Combine(AgentData.Local, "图片平台.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose))
+            using (LockForWrite())
             {
                 var items = Load();
                 items.RemoveAll(p => p.Id == channel.Id);

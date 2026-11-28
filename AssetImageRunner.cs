@@ -110,8 +110,11 @@ namespace OneClickFilm
                         throw new InvalidOperationException("原批次的出图渠道设置已变更。恢复原设置，或选择「仅重试未完成项」使用当前渠道。");
                 }
                 bool responsesApi = FlowChannels.IsResponsesApi(channel);
-                bool externalCli = channel != null && !responsesApi;
+                bool customApi = channel != null && ImageApiProfiles.IsProfile(channel.Id);
+                bool externalCli = channel != null && !responsesApi && !customApi;
+                bool prepareProviderPrompt = externalCli || ImageApiProfiles.IsImages(channel);
                 if (responsesApi) CodexAuthMode.EnsureResponsesApi();
+                else if (customApi) ImageApiProfiles.Key(channel);
                 else if (channel == null) CodexAuthMode.EnsureBuiltinImage();
                 if (!existing)
                 {
@@ -215,7 +218,7 @@ namespace OneClickFilm
                 await Task.Run(() => AgentMedia.Budget(options, "图片", toRun.Count));
                 if (exitAfterCodexTask || cancel.IsCancellationRequested) return "出图已暂停";
                 string name = channel == null ? CodexAuthMode.Label + " 内置图片生成" : channel.Name;
-                string route = responsesApi ? FlowChannels.ResponsesApi : channel == null ? "builtin" : "cli";
+                string route = externalCli ? "cli" : channel == null ? "builtin" : channel.Id;
                 var cost = AgentMedia.Cost(options, "图片");
                 var baseNames = toRun.Where(j => j.IsBase).Select(j => j.Name).ToList();
                 string risk = toRun.Any(j => j.Attempt != null)
@@ -230,7 +233,7 @@ namespace OneClickFilm
                     {
                         string prompt = ReferencePrompt(batch, job, route);
                         prompt = ImageOutputSettings.ApplySize(prompt, batch.TargetSize);
-                        if (externalCli && imageSkill != null && !job.DirectSpec)
+                        if (prepareProviderPrompt && imageSkill != null && !job.DirectSpec)
                         {
                             string direction = AssetProduction.CodexText(codex, options.Model,
                                 "为以下图片请求按已选 Skill 编写补充指导。保留对象、事实、规格、参考图和版式。仅交付文字。\n" + prompt,
@@ -241,7 +244,7 @@ namespace OneClickFilm
                         }
                         job.ApprovedPrompt = prompt;
                     }
-                    if (externalCli && imageSkill != null && !job.DirectSpec)
+                    if (prepareProviderPrompt && imageSkill != null && !job.DirectSpec)
                     {
                         int doneCount = Interlocked.Increment(ref prepared);
                         Window.Dispatcher.BeginInvoke(new Action(() => progress("并行准备渠道提示词", doneCount, toRun.Count)));
@@ -389,7 +392,8 @@ namespace OneClickFilm
             progress("检查图片渠道", batch.Jobs.Count(j => j.Done), total);
             await Task.Run(() =>
             {
-                if (FlowChannels.IsResponsesApi(route)) AssetChannels.CheckResponsesApi();
+                if (ImageApiProfiles.IsProfile(route)) ImageApiProfiles.Key(ImageApiProfiles.Get(route));
+                else if (FlowChannels.IsResponsesApi(route)) AssetChannels.CheckResponsesApi();
                 else if (route == "builtin") AssetChannels.CheckBuiltin(codex, cancel);
                 else AssetChannels.CheckCli(options, Path.GetDirectoryName(options.ImageCli), cancel);
             });

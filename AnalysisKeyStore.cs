@@ -7,26 +7,23 @@ namespace OneClickFilm
 {
     internal static class AnalysisKeyStore
     {
-        private static string KeyFile
+        private static string KeyFileFor(string id)
         {
-            get
-            {
-                string root = Environment.GetEnvironmentVariable("ONE_CLICK_FILM_SETTINGS");
-                if (String.IsNullOrWhiteSpace(root))
-                    root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "一键成片");
-                return Path.Combine(root, "本机凭证", "openai-analysis.dpapi");
-            }
+            string root = Environment.GetEnvironmentVariable("ONE_CLICK_FILM_SETTINGS");
+            if (String.IsNullOrWhiteSpace(root))
+                root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "一键成片");
+            return Path.Combine(root, "本机凭证", id == null ? "openai-analysis.dpapi" : id + ".dpapi");
         }
 
-        internal static bool HasSavedKey { get { return File.Exists(KeyFile); } }
+        internal static bool HasSavedKey { get { return File.Exists(KeyFileFor(null)); } }
 
-        internal static string Read()
+        internal static string Read(string id = null)
         {
             byte[] clear = null;
             try
             {
                 byte[] encrypted;
-                using (var file = new FileStream(KeyFile, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                using (var file = new FileStream(KeyFileFor(id), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
                 {
                     if (file.Length == 0 || file.Length > 16384)
                         throw Unreadable();
@@ -43,7 +40,7 @@ namespace OneClickFilm
             finally { if (clear != null) Array.Clear(clear, 0, clear.Length); }
         }
 
-        internal static void Save(string value)
+        internal static void Save(string value, string id = null)
         {
             byte[] clear = Encoding.UTF8.GetBytes(Normalize(value));
             byte[] encrypted;
@@ -52,7 +49,7 @@ namespace OneClickFilm
             { throw new InvalidOperationException("Windows 无法加密项目 Key。请检查当前 Windows 用户配置。"); }
             finally { Array.Clear(clear, 0, clear.Length); }
 
-            string path = KeyFile;
+            string path = KeyFileFor(id);
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             string pending = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
@@ -68,7 +65,16 @@ namespace OneClickFilm
             finally { File.Delete(pending); }
         }
 
-        internal static void Clear() { File.Delete(KeyFile); }
+        internal static void Clear() { File.Delete(KeyFileFor(null)); }
+
+        internal static void DiscardImageKey(string id)
+        {
+            // The profile already points to its committed key. A locked obsolete file is harmless.
+            if (String.IsNullOrEmpty(id)) throw new ArgumentException("缺少图片渠道凭证编号。");
+            try { File.Delete(KeyFileFor(id)); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
 
         internal static string Normalize(string value)
         {

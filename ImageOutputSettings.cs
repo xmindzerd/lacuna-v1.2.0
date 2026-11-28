@@ -34,6 +34,8 @@ namespace OneClickFilm
         }
         internal static IEnumerable<string> Sizes(AssetChannel channel)
         {
+            if (channel != null && ImageApiProfiles.IsProfile(channel.Id))
+                return new[] { "1536x1152", "1024x1024", "1536x1024", "1024x1536" };
             if (channel == null || FlowChannels.IsResponsesApi(channel)) return BuiltinRatios.SelectMany(ratio => BuiltinLongEdges.Select(pixels => ForRatio(ratio, pixels)));
             if (channel.Driver == FlowChannels.Dreamina) return new[] { "2048x1536", "2048x1152", "1152x2048" };
             string args = channel.Arguments ?? "";

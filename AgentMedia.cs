@@ -57,6 +57,7 @@ namespace OneClickFilm
 
         internal static string RouteName(string route)
         {
+            if (ImageApiProfiles.IsProfile(route)) return "自定义图片 API";
             return FlowChannels.IsResponsesApi(route) ? FlowChannels.ResponsesApiName : route == "builtin" ? (CodexAuthMode.IsApi ? "Responses API 内置生图" : "Codex 内置生图") : route == "api" ? "外部视频 API" : "外部平台 CLI";
         }
 

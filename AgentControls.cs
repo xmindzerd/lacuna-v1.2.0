@@ -624,9 +624,10 @@ namespace OneClickFilm
             }
             Directory.CreateDirectory(work);
             bool responsesApi = FlowChannels.IsResponsesApi(batch.Route);
-            bool builtin = batch.Route == "builtin" || responsesApi;
+            bool customImage = ImageApiProfiles.IsProfile(batch.Route);
+            bool builtin = FlowChannels.IsNative(batch.Route);
             if (responsesApi) CodexAuthMode.EnsureResponsesApi();
-            else if (builtin) CodexAuthMode.EnsureBuiltinImage();
+            else if (builtin && !customImage) CodexAuthMode.EnsureBuiltinImage();
             cancel.ThrowIfCancellationRequested();
             bool direct = !builtin && (assetImage && batch.Route == "cli" || CodexAuthMode.IsApi);
             using (var authorization = direct ? new FileStream(Path.Combine(work, "authorization.lock"), FileMode.OpenOrCreate,
@@ -700,6 +701,14 @@ namespace OneClickFilm
                         var receipt = AgentMedia.Execute(work, cancel);
                         source = AgentData.Inside(work, receipt.Output);
                     }
+                    else if (customImage)
+                    {
+                        var channel = ImageApiProfiles.Get(batch.Route);
+                        source = ImageApiProfiles.IsImages(channel) ?
+                            ImageApiProfiles.Generate(channel, work, instruction, images, targetSize, timeoutMs, cancel) :
+                            OpenAiResponsesClient.GenerateImage(work, instruction, options, images, targetSize, imageSkill, timeoutMs, cancel, exe, channel);
+                        if (trace != null) trace.Mark("已通过图片 API 取回图片");
+                    }
                     else if (responsesApi || builtin && CodexAuthMode.IsApi)
                     {
                         try
@@ -730,7 +739,7 @@ namespace OneClickFilm
                                 AgentData.Short(result.TransportNote ?? result.Answer, 250));
                         source = builtin ? AgentMedia.BuiltinOutput(result.Session, assetImage) : AgentData.Inside(work, media.Output);
                     }
-                    if (builtin && assetImage && !responsesApi && !CodexAuthMode.IsApi)
+                    if (builtin && assetImage && !responsesApi && !customImage && !CodexAuthMode.IsApi)
                     {
                         string name = "output" + Path.GetExtension(source).ToLowerInvariant();
                         string archived = AgentData.Inside(work, name);
