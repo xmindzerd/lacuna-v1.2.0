@@ -67,6 +67,15 @@ namespace OneClickFilm
 
         internal static void Clear() { File.Delete(KeyFileFor(null)); }
 
+        internal static void DiscardImageKey(string id)
+        {
+            // The profile already points to its committed key. A locked obsolete file is harmless.
+            if (String.IsNullOrEmpty(id)) throw new ArgumentException("缺少图片渠道凭证编号。");
+            try { File.Delete(KeyFileFor(id)); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+
         internal static string Normalize(string value)
         {
             value = (value ?? "").Trim();

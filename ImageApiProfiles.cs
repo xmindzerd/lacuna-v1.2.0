@@ -36,9 +36,16 @@ namespace OneClickFilm
             throw new InvalidOperationException("此项目的图片 API 配置不在本机，请在设置添加或重新选择出图渠道。");
         }
 
+        private static string KeyFileId(AssetChannel channel)
+        {
+            if (!IsProfile(channel.Id)) throw new InvalidDataException("图片渠道编号无效。");
+            if (String.IsNullOrEmpty(channel.ImageKeyRevision)) return channel.Id; // PR #1 legacy DPAPI file
+            return channel.Id + "-" + AgentData.Hash(channel.BaseUrl + "\n" + channel.ImageKeyRevision);
+        }
+
         internal static string Key(AssetChannel channel)
         {
-            string key = AnalysisKeyStore.Read(channel.Id);
+            string key = AnalysisKeyStore.Read(KeyFileId(channel));
             if (String.IsNullOrEmpty(key)) throw new InvalidOperationException("请在「设置 → 自定义图片 API」保存此渠道的 API Key。");
             return key;
         }
@@ -49,14 +56,34 @@ namespace OneClickFilm
             if (String.IsNullOrWhiteSpace(channel.Name) || !AgentRunner.ValidModel(channel.ImageModel ?? ""))
                 throw new ArgumentException("请填写渠道名称和图片模型 ID。");
             if (channel.Driver == Responses) CodexAuthMode.Preflight(channel.BaseUrl, channel.MainModel);
-            var old = AssetChannels.Load().FirstOrDefault(c => c.Id == channel.Id);
-            if (String.IsNullOrWhiteSpace(key) && (old == null || old.BaseUrl != channel.BaseUrl))
-                throw new ArgumentException("新渠道或更换 Base URL 时，请填写该地址对应的 API Key。");
-            if (old != null && old.BaseUrl != channel.BaseUrl) channel.Id = null;
-            if (channel.Id == null) channel.Id = Prefix + Guid.NewGuid().ToString("N");
-            if (!String.IsNullOrWhiteSpace(key)) AnalysisKeyStore.Save(key, channel.Id);
-            channel.Status = "已配置";
-            AssetChannels.Store(channel);
+            using (AssetChannels.LockForWrite())
+            {
+                var channels = AssetChannels.Load();
+                int index = channels.FindIndex(c => c.Id == channel.Id && IsProfile(c.Id));
+                var old = index < 0 ? null : channels[index];
+                bool replaceKey = !String.IsNullOrWhiteSpace(key);
+                if (!replaceKey && (old == null || old.BaseUrl != channel.BaseUrl))
+                    throw new ArgumentException("新渠道或更换 Base URL 时，请填写该地址对应的 API Key。");
+
+                if (channel.Id == null) channel.Id = Prefix + Guid.NewGuid().ToString("N");
+                channel.ImageKeyRevision = replaceKey ? AgentData.Id() : old.ImageKeyRevision;
+                string keyFile = KeyFileId(channel);
+                if (replaceKey) AnalysisKeyStore.Save(key, keyFile);
+                try
+                {
+                    channel.Status = "已配置";
+                    if (old == null) channels.Add(channel);
+                    else channels[index] = channel;
+                    // Publish the address and its credential together, keeping the project's channel ID stable.
+                    AssetChannels.Save(channels);
+                }
+                catch
+                {
+                    if (replaceKey) AnalysisKeyStore.DiscardImageKey(keyFile);
+                    throw;
+                }
+                if (replaceKey && old != null) AnalysisKeyStore.DiscardImageKey(KeyFileId(old));
+            }
         }
 
         internal static string Generate(AssetChannel channel, string work, string prompt, IList<string> references,
@@ -181,7 +208,7 @@ namespace OneClickFilm
             section.Children.Add(Muted("Base URL", 13, 8));
             var endpoint = CodexTextBox("图片 API Base URL", CodexAuthMode.DefaultUrl, 32);
             section.Children.Add(endpoint);
-            section.Children.Add(Muted("API Key（编辑时留空保留原 Key）", 13, 8));
+            section.Children.Add(Muted("API Key（更换地址时须重新填写）", 13, 8));
             var secret = new PasswordBox { MinHeight = 32 };
             section.Children.Add(secret);
             section.Children.Add(Muted("图片模型 ID（按供应商文档填写）", 13, 8));
